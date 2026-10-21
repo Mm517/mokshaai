@@ -1,8 +1,45 @@
 Mokasha AI
-1) Supabase > Edge Functions > Secrets: GEMINI_API_KEY و GROQ_API_KEY
-2) الـ Function: supabase/functions/generate-site/index.ts  (verify_jwt = false)
-   النشر: supabase functions deploy generate-site --no-verify-jwt
-3) الجداول: supabase/setup.sql (متطبقة بالفعل على مشروع nosoq)
-4) index.html: ارفعه على Vercel أو أي استضافة (مش معاينة جوه محرر)
-الحدود: 25 عملية/جهاز/يوم، 500 للموقع كله (أول ملف الـ Function)
-التصفية: جوه الصفحة، قواعدك بتتحفظ في متصفحك
+
+الهيكل
+  index.html                      الصفحة الرئيسية للأداة
+  css/app.css                     التصميم
+  js/core.js                      الحالة والاتصال بالسيرفر
+  js/media.js                     رفع الصور والفيديو (تصغير + لقطات من الفيديو)
+  js/project.js                   المعاينة من الملفات، التعديل البصري، ZIP، النشر
+  js/chat.js                      قسم الشات
+  js/app.js                       البناء والتبويبات والتصفية
+  supabase/functions/generate-site/index.ts   الـ Function
+  supabase/setup.sql              الجداول (متطبقة بالفعل على مشروع nosoq)
+
+التشغيل
+1) Supabase > Edge Functions > Secrets:
+     XAI_API_KEY      مفتاح Grok من console.x.ai   (جديد، بديل GROQ_API_KEY)
+     GEMINI_API_KEY   زي ما هو
+   اختياري: PER_IP_DAILY (الافتراضي 60) و GLOBAL_DAILY (الافتراضي 1500)
+2) نشر الـ Function:
+     supabase functions deploy generate-site --no-verify-jwt
+3) ارفع مجلد المشروع كله (index.html + css + js) على Vercel أو أي استضافة.
+   لازم الـ Function والواجهة يتنشروا مع بعض لأن شكل الرد اتغير (ملفات بدل html واحد).
+
+النماذج
+  Grok (xAI): grok-4.7 / grok-4.6 / grok-4.5  (لو واحد مش متاح بيجرب اللي بعده تلقائيًا)
+  Gemini: زي ما كان
+  لتغيير الأسماء: المصفوفة MODELS في أول index.ts، و PROV في js/app.js
+
+الصور والفيديو
+  الصور بتتصغّر لـ 1280px وبتتبعت للنموذج وبتتحط في المشروع في assets/img/.
+  الفيديو بيتحط في assets/video/، والنموذج بيشوف 3 إلى 6 لقطات منه (الفيديو نفسه مش بيتبعت).
+  الفيديو بيظهر في المعاينة وفي ملف ZIP، لكن مش بيتنشر أونلاين (زر النشر بيخزن صفحة واحدة).
+
+مراحل التوليد (وضع الوكلاء)
+  1) وكيل التصميم: خطة ألوان وخطوط وملفات
+  2) وكيل الكود: بيكتب ملفات HTML وCSS وJS منفصلة
+  3) وكيل المراجعة: فحص آلي (روابط ناقصة، صور بدون alt، إيموجي، ملفات مقطوعة) وتصحيح
+  كل مرحلة طلب منفصل، وكل طلب بيتحسب في الحد اليومي.
+
+المرجعية اللي اتعلّم منها النموذج
+  موجودة في STYLE_GUIDE داخل index.ts: نَسَق (tokens وcomponents ومتجر)، CodeBot (واجهة شات)،
+  Millano (فيديو كامل الشاشة)، وبورتفوليو الثري دي (Three.js). عدّلها لو عايز تضيف مواقع تانية.
+
+بدون إيموجي
+  ممنوعة في التعليمات، وبتتشال تلقائيًا من أي رد (في الـ Function وفي الواجهة).
