@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mokasha AI</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#eceff3;--pn:#fff;--ink:#111418;--mute:#667085;--line:#d9dee6;--acc:#111418;--hi:#2358e6;--err:#d92d20;--ok:#16a34a}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+html,body{height:100%}
+body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-columns:400px 1fr;grid-template-rows:56px 1fr}
+header{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:0 20px;background:#000;color:#fff}
+.logo{width:26px;height:26px;border-radius:50%;background:#000;border:2px solid #fff;display:grid;place-items:center}
+.logo i{width:8px;height:8px;border-radius:50%;background:#fff;display:block}
+header b{font-size:18px;letter-spacing:.3px}header span{color:#8a919c;font-size:13px}
+aside{background:var(--pn);border-inline-end:1px solid var(--line);padding:16px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+label,.lb{font-size:13px;font-weight:700;display:block;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+textarea,input[type=text],select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;font-size:14px;background:#fff;color:var(--ink)}
+textarea{min-height:100px;resize:vertical}
+:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.opt{display:flex;gap:8px;align-items:center;font-size:13px;padding:6px 0;cursor:pointer}
+.opt input{width:16px;height:16px;accent-color:#000}
+.box{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.colors{display:flex;gap:8px}.colors input{width:38px;height:34px;border:1px solid var(--line);border-radius:6px;padding:2px;background:#fff}
+button.main{background:#000;color:#fff;border:0;border-radius:10px;padding:13px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+button.main:disabled{opacity:.6;cursor:wait}
+button.sec{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+button.sec:hover{border-color:#000}.tab[aria-pressed=true]{background:#000;color:#fff;border-color:#000}
+#msg{font-size:13px;min-height:18px;word-break:break-word}#msg.err{color:var(--err)}#msg.ok{color:var(--ok)}
+#chat{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+.b{padding:8px 10px;border-radius:10px;font-size:13px;white-space:pre-wrap;line-height:1.7}
+.b.a{background:#f1f3f6}.b.u{background:#000;color:#fff;align-self:flex-start}
+.hist{font-size:12px;color:var(--mute);border-top:1px solid var(--line);padding-top:10px}
+main{display:flex;flex-direction:column;min-width:0;position:relative}
+.bar{display:flex;gap:8px;align-items:center;padding:10px 16px;background:var(--pn);border-bottom:1px solid var(--line);flex-wrap:wrap}.sp{flex:1}
+.stage{flex:1;display:flex;justify-content:center;padding:16px;overflow:auto;position:relative;min-height:300px}
+iframe#frame{background:#fff;border:1px solid var(--line);border-radius:10px;width:100%;height:100%;box-shadow:0 12px 40px rgba(0,0,0,.1)}
+#code{display:none;width:100%;height:100%;font-family:ui-monospace,Menlo,monospace;font-size:12px;direction:ltr;text-align:left;background:#0d1117;color:#7ee787;border-radius:10px;padding:14px;resize:none;line-height:1.6}
+.empty{align-self:center;color:var(--mute);text-align:center;max-width:340px;line-height:1.9}
+#ld{position:absolute;inset:16px;background:#0d1117;color:#e6edf3;border-radius:12px;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+#ld .logo{width:54px;height:54px;border-color:#fff;animation:pl 1.2s infinite}#ld .logo i{width:16px;height:16px}
+@keyframes pl{50%{transform:scale(1.15);box-shadow:0 0 0 14px rgba(255,255,255,.08)}}
+#steps{list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+#steps li{opacity:.35;transition:.3s}#steps li.on{opacity:1;color:#7ee787}#steps li.done{opacity:.7}
+#tick{direction:ltr;font-family:ui-monospace,monospace;font-size:11px;color:#58a6ff;height:84px;overflow:hidden;width:min(460px,100%);opacity:.8}
+.pg{width:min(360px,80%);height:4px;background:#222a35;border-radius:4px;overflow:hidden}.pg i{display:block;height:100%;width:30%;background:#fff;animation:mv 1.4s infinite}
+@keyframes mv{from{margin-inline-start:-30%}to{margin-inline-start:100%}}
+#ep{position:absolute;inset-inline:24px;bottom:24px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:12px;z-index:4}
+#ep input[type=color]{width:30px;height:26px;padding:1px;border:1px solid var(--line);border-radius:5px}
+#ep input[type=text]{width:200px;padding:5px 8px}
+@media(max-width:860px){body{grid-template-columns:1fr;grid-template-rows:56px auto 80vh;height:auto}aside{border:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<header><div class="logo"><i></i></div><b>Mokasha AI</b><span>اوصف فكرتك واستلم موقعك</span></header>
+
+<aside>
+ <div><span class="lb">نوع الموقع</span><div class="chips" id="types"></div></div>
+ <div class="row">
+  <div><label for="prov">المزوّد</label><select id="prov"><option value="gemini">Gemini</option><option value="groq">Groq</option></select></div>
+  <div><label for="model">النموذج</label><select id="model"></select></div>
+ </div>
+ <div class="box">
+  <label class="opt"><input type="checkbox" id="agents" checked> وضع الوكلاء (وكيل تصميم + وكيل كود)</label>
+  <label class="opt"><input type="checkbox" id="ask"> اسألني الأول لحد ما توصل للفكرة</label>
+ </div>
+ <div class="row"><div><label for="name">اسم المشروع</label><input type="text" id="name" placeholder="عيادة د. أحمد"></div>
+  <div style="flex:0 0 96px"><span class="lb">الألوان</span><div class="colors"><input type="color" id="c1" value="#111418" aria-label="أساسي"><input type="color" id="c2" value="#2358e6" aria-label="ثانوي"></div></div></div>
+ <div><label for="prompt">وصف الموقع</label><textarea id="prompt" placeholder="اكتب الأقسام والمحتوى والستايل... وبعد ما الموقع يطلع اكتب هنا أي تعديل"></textarea></div>
+ <details class="box" id="flt"><summary style="cursor:pointer;font-weight:700;font-size:13px">تصفية كلامي (محلية، بقواعدك أنت)</summary>
+  <label class="opt"><input type="checkbox" id="fauto" checked> صفّي تلقائيًا قبل الإرسال</label>
+  <label for="frules">استبدالات (غلط => صح، سطر لكل قاعدة)</label><textarea id="frules" style="min-height:96px"></textarea>
+  <label for="frm" style="margin-top:8px">كلمات تتحذف (سطر لكل كلمة)</label><textarea id="frm" style="min-height:50px"></textarea>
+  <div class="row" style="margin-top:8px"><button class="sec" id="fnow">صفّي الوصف دلوقتي</button><button class="sec" id="frst">الافتراضي</button></div>
+  <div style="font-size:11px;color:var(--mute);margin-top:6px">بتشتغل جوه المتصفح فقط، ومش بتتبعت لأي شركة. بتتحفظ تلقائيًا.</div></details>
+ <div id="chat" hidden></div>
+ <div class="box"><span class="lb">ملف إكسل (منتجات / أسعار / محتوى)</span>
+  <input type="file" id="xl" accept=".xlsx,.xls,.csv"><div id="xlm" style="font-size:12px;color:var(--mute);margin-top:4px"></div></div>
+ <div class="box"><span class="lb">التكاملات</span>
+  <label class="opt"><input type="checkbox" id="i_wa"> زر واتساب</label>
+  <input type="text" id="wa" placeholder="رقم واتساب مع كود الدولة 2010..." dir="ltr" hidden>
+  <label class="opt"><input type="checkbox" id="i_map"> خريطة جوجل</label>
+  <input type="text" id="addr" placeholder="العنوان" hidden>
+  <label class="opt"><input type="checkbox" id="i_form"> نموذج تواصل</label>
+  <label class="opt"><input type="checkbox" id="i_soc"> روابط السوشيال ميديا</label></div>
+ <button class="main" id="go">إنشاء الموقع</button>
+ <div id="msg" role="status"></div>
+ <div class="hist"><b>مشاريعي (على جهازك)</b><ul id="hist" style="list-style:none;padding:0"></ul></div>
+</aside>
+
+<main>
+ <div class="bar">
+  <button class="sec tab" id="tPrev" aria-pressed="true">المعاينة</button>
+  <button class="sec tab" id="tCode" aria-pressed="false">الكود</button>
+  <button class="sec tab" id="tEdit" aria-pressed="false">تعديل بإيدك</button>
+  <span class="sp"></span>
+  <button class="sec" data-w="100%">كمبيوتر</button><button class="sec" data-w="768px">تابلت</button><button class="sec" data-w="390px">موبايل</button>
+  <button class="sec" id="copy">نسخ</button><button class="sec" id="dl">تحميل</button>
+  <button class="main" id="pub" style="padding:8px 16px;font-size:13px">نشر الموقع</button>
+ </div>
+ <div class="stage">
+  <div class="empty" id="empty">اختار نوع الموقع واكتب فكرتك واضغط «إنشاء الموقع».</div>
+  <iframe id="frame" title="معاينة" sandbox="allow-scripts allow-forms" hidden></iframe>
+  <textarea id="code" spellcheck="false"></textarea>
+  <div id="ld" hidden><div class="logo"><i></i></div><ul id="steps"></ul><div id="tick"></div><div class="pg"><i></i></div></div>
+  <div id="ep" hidden>
+   <b id="etag">عنصر</b> <span>النص</span><input type="color" id="ec"> <span>الخلفية</span><input type="color" id="eb">
+   <span>الحجم</span><input type="range" id="es" min="10" max="96">
+   <input type="text" id="ei" placeholder="رابط صورة جديدة" dir="ltr" hidden>
+   <button class="sec" id="ed">حذف العنصر</button><span style="color:var(--mute)">اكتب في العنصر مباشرة لتعديل نصه</span>
+  </div>
+ </div>
+</main>
+
+<script>
+const FN="https://dbzqejwsivgndftfnezb.supabase.co/functions/v1/generate-site";
+const REST="https://dbzqejwsivgndftfnezb.supabase.co/rest/v1/sb_published_pages";
+const KEY="sb_publishable_JtpQxfx0h2GkUm6xoGEUNw_bQKopifH";
+const $=id=>document.getElementById(id);
+const sp=new URLSearchParams(location.search).get("s");
+if(sp){ // وضع المشاهدة: الموقع المنشور
+  document.body.style.cssText="display:block;height:100vh;background:#fff";
+  document.body.innerHTML='<iframe id="v" style="width:100%;height:100%;border:0" sandbox="allow-scripts allow-forms allow-popups"></iframe>';
+  fetch(REST+"?slug=eq."+encodeURIComponent(sp)+"&select=html",{headers:{apikey:KEY}}).then(r=>r.json())
+   .then(d=>{document.getElementById("v").srcdoc=d[0]?d[0].html:"<h2 style='font-family:sans-serif;padding:40px'>الموقع غير موجود</h2>"})
+   .catch(()=>{document.body.textContent="تعذّر تحميل الموقع"});
+} else init();
+
+function init(){
+const TYPES=["متجر إلكتروني","عيادة","بورتفوليو","شركة","مطعم","مدونة","صفحة هبوط"];
+const PROV={gemini:[["gemini-3.8-flash","Gemini 3.8 Flash"],["gemini-3.6-flash","Gemini 3.6 Flash"],["gemini-3.5-flash-lite","Gemini 3.5 Flash-Lite"]],
+ groq:[["llama-3.3-70b-versatile","Llama 3.3 70B"],["openai/gpt-oss-120b","GPT-OSS 120B"]]};
+let type=TYPES[0],html="",busy=false,pid=null,chat=[],xl="",editing=false,timer=null;
+const say=(t,c="")=>{$("msg").textContent=t;$("msg").className=c};
+$("types").innerHTML=TYPES.map((t,i)=>`<button class="chip" aria-pressed="${i==0}">${t}</button>`).join("");
+$("types").onclick=e=>{if(!e.target.classList.contains("chip"))return;type=e.target.textContent;[...$("types").children].forEach(c=>c.setAttribute("aria-pressed",c===e.target))};
+const fillModels=()=>{$("model").innerHTML=PROV[$("prov").value].map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("")};
+$("prov").onchange=fillModels;fillModels();
+$("i_wa").onchange=()=>$("wa").hidden=!$("i_wa").checked;$("i_map").onchange=()=>$("addr").hidden=!$("i_map").checked;
+
+// إكسل
+$("xl").onchange=async e=>{const f=e.target.files[0];if(!f)return;
+ try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets[wb.SheetNames[0]];const csv=XLSX.utils.sheet_to_csv(ws);
+  xl=csv.slice(0,5000);$("xlm").textContent="اتقرا: "+f.name+" ("+csv.split("\n").filter(Boolean).length+" صف)"}
+ catch(err){xl="";$("xlm").textContent="تعذّرت قراءة الملف"}};
+
+// مشاريع محفوظة
+const store={get(){try{return JSON.parse(localStorage.getItem("mk_projects")||"[]")}catch(e){return[]}},set(v){try{localStorage.setItem("mk_projects",JSON.stringify(v.slice(0,12)))}catch(e){}}};
+function renderProjects(){$("hist").innerHTML="";store.get().forEach(p=>{const li=document.createElement("li"),b=document.createElement("button");
+ b.className="sec";b.style.cssText="width:100%;text-align:start;margin-top:4px";b.textContent=p.name;
+ b.onclick=()=>{pid=p.id;showHtml(p.html);$("go").textContent="تطبيق التعديل"};li.appendChild(b);$("hist").appendChild(li)})}
+function saveProject(){const all=store.get(),i=all.findIndex(p=>p.id===pid);
+ if(i>=0)all[i].html=html;else{pid=Date.now();all.unshift({id:pid,name:$("name").value||"بدون اسم",html})}store.set(all);renderProjects()}
+
+// المحرر البصري
+const ED=`(function(){var cur=null,st=document.createElement('style');st.setAttribute('data-mk','1');st.textContent='[data-sel]{outline:2px solid #2358e6!important;outline-offset:2px}*{cursor:pointer}';document.head.appendChild(st);
+function out(){var c=document.documentElement.cloneNode(true);c.querySelectorAll('[data-mk]').forEach(function(e){e.remove()});c.querySelectorAll('[data-sel]').forEach(function(e){e.removeAttribute('data-sel')});c.querySelectorAll('[contenteditable]').forEach(function(e){e.removeAttribute('contenteditable')});parent.postMessage({t:'html',h:'<!DOCTYPE html>'+c.outerHTML},'*')}
+document.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(cur){cur.removeAttribute('data-sel');cur.removeAttribute('contenteditable')}cur=e.target;cur.setAttribute('data-sel','1');if(!/^(IMG|HTML|BODY)$/i.test(cur.tagName))cur.setAttribute('contenteditable','true');var s=getComputedStyle(cur);parent.postMessage({t:'sel',tag:cur.tagName,color:s.color,bg:s.backgroundColor,size:parseInt(s.fontSize),img:cur.tagName=='IMG'},'*')},true);
+document.addEventListener('input',out);
+addEventListener('message',function(e){var d=e.data;if(!cur||!d)return;if(d.c=='style')cur.style[d.p]=d.v;else if(d.c=='del'){cur.remove();cur=null}else if(d.c=='src')cur.src=d.v;out()})})()`;
+const hex=c=>{const m=c.match(/[\d.]+/g);return m&&m.length>=3&&m[3]!=="0"?"#"+m.slice(0,3).map(x=>(+x|0).toString(16).padStart(2,"0")).join(""):"#ffffff"};
+function showHtml(h){html=h;$("code").value=h;$("empty").hidden=true;
+ $("frame").srcdoc=editing?h.replace(/<\/body>/i,"<scr"+"ipt data-mk>"+ED+"</scr"+"ipt></body>"):h;
+ if($("tCode").getAttribute("aria-pressed")!="true")$("frame").hidden=false}
+addEventListener("message",e=>{if(e.source!==$("frame").contentWindow||!e.data)return;const d=e.data;
+ if(d.t==="html"){html=d.h;$("code").value=d.h}
+ if(d.t==="sel"){$("ep").hidden=false;$("etag").textContent=d.tag.toLowerCase();$("ec").value=hex(d.color);$("eb").value=hex(d.bg);$("es").value=d.size||16;$("ei").hidden=!d.img}});
+const send=m=>$("frame").contentWindow.postMessage(m,"*");
+$("ec").oninput=e=>send({c:"style",p:"color",v:e.target.value});$("eb").oninput=e=>send({c:"style",p:"backgroundColor",v:e.target.value});
+$("es").oninput=e=>send({c:"style",p:"fontSize",v:e.target.value+"px"});$("ei").onchange=e=>send({c:"src",v:e.target.value});
+$("ed").onclick=()=>{send({c:"del"});$("ep").hidden=true};
+function setTab(t){$("tPrev").setAttribute("aria-pressed",t=="p");$("tCode").setAttribute("aria-pressed",t=="c");$("tEdit").setAttribute("aria-pressed",t=="e");
+ editing=t=="e";$("code").style.display=t=="c"?"block":"none";$("frame").hidden=t=="c"||!html;$("ep").hidden=true;if(html&&t!="c")showHtml($("code").value||html)}
+$("tPrev").onclick=()=>setTab("p");$("tCode").onclick=()=>setTab("c");$("tEdit").onclick=()=>{setTab("e");say("اضغط على أي عنصر في الموقع وعدّله","ok")};
+$("code").oninput=()=>{html=$("code").value};
+
+// اللودر + كتابة الكود
+const STEPS=()=>$("agents").checked?["فهم الفكرة","وكيل التصميم: الألوان والتخطيط","وكيل الكود: بناء الصفحات","مراجعة وتجهيز المعاينة"]:["فهم الفكرة","بناء الموقع","تجهيز المعاينة"];
+const LINES=["<header class=\"nav\">","  <nav>...</nav>","body{font-family:'IBM Plex Sans Arabic'}",".hero{display:grid;gap:24px}","<section id=\"products\">","@media(max-width:768px){...}","<button class=\"cta\">","const items=[...]","footer{padding:32px}"];
+function loader(on){$("ld").hidden=!on;clearInterval(timer);if(!on)return;
+ const s=STEPS();$("steps").innerHTML=s.map(x=>"<li>"+x+"</li>").join("");let i=0,n=0;
+ const tick=()=>{[...$("steps").children].forEach((li,k)=>li.className=k<i?"done":k==i?"on":"");i=Math.min(i+1,s.length-1)};tick();
+ timer=setInterval(()=>{n++;if(n%6==0)tick();$("tick").innerHTML=Array.from({length:6},(_,k)=>LINES[(n+k*3)%LINES.length].replace(/</g,"&lt;")).join("<br>")},350)}
+function typeIn(h){return new Promise(res=>{$("frame").hidden=true;$("code").style.display="block";$("code").value="";let p=0;const step=Math.max(80,Math.ceil(h.length/80));
+ const t=setInterval(()=>{p+=step;$("code").value=h.slice(0,p);$("code").scrollTop=1e9;if(p>=h.length){clearInterval(t);res()}},30)})}
+
+// تصفية الكلام (محلية)
+const DEF_R="عايز => أريد\nعاوز => أريد\nاعمللي => أنشئ لي\nاعملي => أنشئ لي\nموقه => موقع\nالموقه => الموقع\nويبسايت => موقع\nمتجر الكترونى => متجر إلكتروني\nشغال => يعمل\nدوس => اضغط\nهات => أضف";
+const DEF_M="يعني\nبقى\nيا باشا";
+const lsGet=(k,d)=>{try{return localStorage.getItem(k)??d}catch(e){return d}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+$("frules").value=lsGet("mk_r",DEF_R);$("frm").value=lsGet("mk_m",DEF_M);
+$("frules").oninput=()=>lsSet("mk_r",$("frules").value);$("frm").oninput=()=>lsSet("mk_m",$("frm").value);
+$("frst").onclick=()=>{$("frules").value=DEF_R;$("frm").value=DEF_M;lsSet("mk_r",DEF_R);lsSet("mk_m",DEF_M)};
+const esc=x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),SEP="[\\s\u060C.,!?\u061F\u061B:()\"']";
+function clean(t){
+ t=t.replace(/([\u0621-\u064A])\1{2,}/g,"$1").replace(/([!?\u061F.,\u060C])\1{1,}/g,"$1").replace(/[ \t]{2,}/g," ");
+ $("frules").value.split("\n").forEach(l=>{const i=l.indexOf("=>");if(i<1)return;const a=l.slice(0,i).trim(),b=l.slice(i+2).trim();
+  if(a)t=t.replace(new RegExp("(^|"+SEP+")"+esc(a)+"(?=$|"+SEP+")","g"),"$1"+b.replace(/\$/g,"$$$$"))});
+ $("frm").value.split("\n").map(x=>x.trim()).filter(Boolean).forEach(w=>{t=t.replace(new RegExp("(^|"+SEP+")"+esc(w)+"(?=$|"+SEP+")","g"),"$1")});
+ return t.replace(/[ \t]{2,}/g," ").trim()}
+$("fnow").onclick=()=>{$("prompt").value=clean($("prompt").value);say("تمت التصفية. راجع الوصف وعدّل لو عايز.","ok")};
+// بناء الطلب
+function build(text,first){if(!first)return text;
+ let p=`أنشئ موقع من نوع: ${type}. الاسم: ${$("name").value||"بدون اسم"}. الألوان: أساسي ${$("c1").value} وثانوي ${$("c2").value}. الوصف: ${text}`;
+ const ig=[];if($("i_wa").checked)ig.push(`زر واتساب عائم برقم ${$("wa").value||"غير محدد"} (رابط wa.me)`);
+ if($("i_map").checked)ig.push(`قسم موقع بخريطة Google Maps (iframe embed) للعنوان: ${$("addr").value||"غير محدد"}`);
+ if($("i_form").checked)ig.push("نموذج تواصل (الاسم، الموبايل، الرسالة) مع رسالة شكر بعد الإرسال");
+ if($("i_soc").checked)ig.push("روابط سوشيال ميديا في الفوتر");
+ if(ig.length)p+="\nالتكاملات المطلوبة: "+ig.join(" - ");
+ if(xl)p+="\nبيانات من ملف إكسل (استخدمها كمحتوى حقيقي: منتجات/أسعار/جداول):\n"+xl;return p}
+async function call(body){const r=await fetch(FN,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({provider:$("prov").value,model:$("model").value,...body})});
+ const d=await r.json().catch(()=>({error:"رد غير متوقع من السيرفر"}));if(!r.ok||d.error)throw new Error(d.error||"حصل خطأ");return d}
+const NET="تعذّر الاتصال بالسيرفر. افتح الصفحة من رابط حقيقي (Vercel أو localhost) مش من معاينة داخل محرر.";
+const fe=e=>/fetch|network/i.test(e.message)?NET:e.message;
+function bubble(r,t){$("chat").hidden=false;const d=document.createElement("div");d.className="b "+r;d.textContent=t;$("chat").appendChild(d);$("chat").scrollTop=1e9}
+
+async function generate(prompt,first){
+ loader(true);setTab("p");$("frame").hidden=true;
+ try{const d=await call({mode:"generate",agents:$("agents").checked,prompt,currentHtml:first?null:html});
+  loader(false);await typeIn(d.html);setTab("p");showHtml(d.html);saveProject();
+  $("go").textContent="تطبيق التعديل";$("prompt").value="";$("prompt").placeholder="اكتب أي تعديل... أو جرّب «تعديل بإيدك» فوق";chat=[];$("chat").innerHTML="";$("chat").hidden=true;
+  say("تم. عدّل بالكتابة أو بزر «تعديل بإيدك»، وبعدين اضغط نشر.","ok")}
+ catch(e){loader(false);say("فشل: "+fe(e),"err");if(html)setTab("p")}}
+
+$("go").onclick=async()=>{if(busy)return;let text=$("prompt").value.trim();if(text&&$("fauto").checked){text=clean(text);$("prompt").value=text}
+ if(!text){say("اكتب الأول.","err");return}
+ if(text.length>11000){say("الوصف طويل ("+text.length+" حرف). الحد 11000.","err");return}
+ busy=true;$("go").disabled=true;const first=!html;if(first)pid=null;
+ try{
+  if(first&&$("ask").checked){chat.push({r:"u",t:chat.length?text:build(text,true)});bubble("u",text);$("prompt").value="";say("بفكر في أسئلة...");
+   const d=await call({mode:"clarify",history:chat});
+   if(/^READY:/i.test(d.text)){const brief=d.text.replace(/^READY:\s*/i,"");bubble("a","تمام، فهمت الفكرة. بنبني دلوقتي.");chat=[];await generate(brief+(xl?"\nبيانات إكسل:\n"+xl:""),true)}
+   else{chat.push({r:"a",t:d.text});bubble("a",d.text);$("prompt").placeholder="جاوب هنا...";say("جاوب على الأسئلة وأكمل.","ok")}}
+  else await generate(build(text,first),first);
+ }catch(e){say("فشل: "+fe(e),"err")}
+ busy=false;$("go").disabled=false};
+
+// أدوات
+document.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>$("frame").style.width=b.dataset.w);
+$("copy").onclick=async()=>{if(!html)return;try{await navigator.clipboard.writeText(html);say("تم نسخ الكود","ok")}catch(e){say("انسخ من تبويب الكود","err")}};
+$("dl").onclick=()=>{if(!html)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="index.html";a.click();URL.revokeObjectURL(a.href)};
+$("pub").onclick=async()=>{if(!html){say("اعمل موقع الأول.","err");return}
+ $("pub").disabled=true;say("جاري النشر...");
+ try{const d=await call({mode:"publish",html});const url=location.origin+location.pathname+"?s="+d.slug;
+  $("msg").className="ok";$("msg").innerHTML="تم النشر: <a href=\""+url+"\" target=\"_blank\" dir=\"ltr\">"+url+"</a>";try{await navigator.clipboard.writeText(url)}catch(e){}}
+ catch(e){say("فشل النشر: "+fe(e),"err")}$("pub").disabled=false};
+renderProjects();
+}
+</script>
+</body>
+</html>
